@@ -3,11 +3,10 @@ use crate::Entry;
 use winnow::Result;
 use winnow::{
     Parser,
-    ascii::{alphanumeric1, line_ending, multispace0, space0, space1, till_line_ending},
-    combinator::{alt, cond, delimited, preceded},
+    ascii::{line_ending, multispace0, space0, space1, till_line_ending},
+    combinator::{cond, delimited, preceded},
     error::ContextError,
-    stream::Offset,
-    token::{any, literal, take_till, take_until, take_while},
+    token::{take, take_until},
 };
 
 pub fn parse_entry(entry: &mut &str, application_name: &str) -> Option<Entry> {
@@ -40,6 +39,7 @@ fn _parse_file(input: &mut &str, name: &str) -> Result<Entry> {
         take_until(0.., "# "),
     )
     .parse_next(input);
+    let _: Result<&str> = take(2u8).parse_next(input); // cleans up the final header which 
     if tldr_text.clone().is_ok_and(|f| f.is_none())
         || info_text.clone().is_ok_and(|f| f.is_none())
         || common_uses_text.clone().is_ok_and(|f| f.is_none())
@@ -49,11 +49,11 @@ fn _parse_file(input: &mut &str, name: &str) -> Result<Entry> {
     }
     Ok(Entry {
         name: name.to_string(),
-        tldr: tldr_text.unwrap().unwrap().to_string(),
-        info: info_text.unwrap().unwrap().to_string(),
-        common_uses: common_uses_text.unwrap().unwrap().to_string(),
-        resources: resources_text.unwrap().unwrap().to_string(),
-        extra: input.to_string(),
+        tldr: tldr_text.unwrap().unwrap().trim_end().to_string(),
+        info: info_text.unwrap().unwrap().trim_end().to_string(),
+        common_uses: common_uses_text.unwrap().unwrap().trim_end().to_string(),
+        resources: resources_text.unwrap().unwrap().trim_end().to_string(),
+        extra: input.trim_end().to_string(),
     })
 }
 

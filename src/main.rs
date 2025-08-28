@@ -5,6 +5,7 @@ use std::io::Read;
 use std::io::Write;
 use std::process::Command;
 
+use atty::Stream;
 use clap::Parser;
 use surrealdb::Error as surrealError;
 use surrealdb::Surreal;
@@ -13,8 +14,10 @@ use surrealdb::engine::local::Db;
 use crate::data_base::Entry;
 use crate::data_base::Record;
 use crate::data_base::setup_db;
+use crate::display::display_setup;
 
 mod data_base;
+mod display;
 mod parser;
 
 // TODO: Better documentation of commandline arguments
@@ -55,15 +58,16 @@ async fn main() -> Result<(), surrealError> {
     } else {
         match resp {
             Some(resp) => {
-                println!("{}", resp);
+                if args.print || atty::isnt(Stream::Stdout) {
+                    println!("{}", resp);
+                } else {
+                    display_setup(&resp).unwrap();
+                }
             }
             None => {
                 println!("No entry for {}", &args.name);
             }
         }
-        // if args.print || atty::isnt(Stream::Stdout) {
-        // } else {
-        // }
     }
 
     Ok(())

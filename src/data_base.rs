@@ -1,3 +1,7 @@
+use ratatui::style::Modifier;
+use ratatui::style::Style;
+use ratatui::text::Line;
+use ratatui::text::Text;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::fmt::Error;
@@ -10,12 +14,12 @@ type DbStr = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Entry {
-    name: DbStr,
-    tldr: DbStr,
-    info: DbStr,
-    common_uses: DbStr,
-    resources: DbStr,
-    extra: DbStr,
+    pub name: DbStr,
+    pub tldr: DbStr,
+    pub info: DbStr,
+    pub common_uses: DbStr,
+    pub resources: DbStr,
+    pub extra: DbStr,
 }
 
 impl Entry {
@@ -35,8 +39,54 @@ impl Display for Entry {
             self.resources.trim_end(),
             self.extra.trim_end()
         )
+        // the trim_ends shouldn't be needed since they are now done at the parsing step
     }
 }
+
+// impl From<Entry> for Text<'_> {
+//     fn from(value: Entry) -> Self {
+//         let heading_style = Style::new().add_modifier(Modifier::BOLD);
+//         let body_style = Style::new();
+//         let mut text = Text::default();
+
+//         text.push_line(Line::styled(
+//             value.name,
+//             Style::new()
+//                 .add_modifier(Modifier::BOLD)
+//                 .add_modifier(Modifier::UNDERLINED),
+//         ));
+//         text.push_line(Line::styled("TLDR", heading_style));
+//         value
+//             .tldr
+//             .lines()
+//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
+//         text.push_line(Line::styled("Info", heading_style));
+//         value
+//             .info
+//             .lines()
+//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
+//         text.push_line(Line::styled("Common Uses", heading_style));
+//         value
+//             .common_uses
+//             .lines()
+//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
+//         text.push_line(Line::styled("Resources", heading_style));
+//         value
+//             .resources
+//             .lines()
+//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
+//         text.push_line(Line::styled(
+//             value.extra.lines().take(1).collect::<String>(),
+//             heading_style,
+//         ));
+//         value
+//             .extra
+//             .lines()
+//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
+
+//         text
+//     }
+// }
 
 impl Default for Entry {
     fn default() -> Self {

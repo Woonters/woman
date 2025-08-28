@@ -5,6 +5,9 @@ use ratatui::text::Text;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::fmt::Error;
+use std::fs::read_dir;
+use std::io::ErrorKind;
+use std::path::PathBuf;
 use surrealdb::Error as surrealError;
 use surrealdb::RecordId;
 use surrealdb::Surreal;
@@ -43,51 +46,6 @@ impl Display for Entry {
     }
 }
 
-// impl From<Entry> for Text<'_> {
-//     fn from(value: Entry) -> Self {
-//         let heading_style = Style::new().add_modifier(Modifier::BOLD);
-//         let body_style = Style::new();
-//         let mut text = Text::default();
-
-//         text.push_line(Line::styled(
-//             value.name,
-//             Style::new()
-//                 .add_modifier(Modifier::BOLD)
-//                 .add_modifier(Modifier::UNDERLINED),
-//         ));
-//         text.push_line(Line::styled("TLDR", heading_style));
-//         value
-//             .tldr
-//             .lines()
-//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
-//         text.push_line(Line::styled("Info", heading_style));
-//         value
-//             .info
-//             .lines()
-//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
-//         text.push_line(Line::styled("Common Uses", heading_style));
-//         value
-//             .common_uses
-//             .lines()
-//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
-//         text.push_line(Line::styled("Resources", heading_style));
-//         value
-//             .resources
-//             .lines()
-//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
-//         text.push_line(Line::styled(
-//             value.extra.lines().take(1).collect::<String>(),
-//             heading_style,
-//         ));
-//         value
-//             .extra
-//             .lines()
-//             .for_each(|l| text.push_line(Line::styled(l, body_style)));
-
-//         text
-//     }
-// }
-
 impl Default for Entry {
     fn default() -> Self {
         Entry {
@@ -116,8 +74,11 @@ pub struct Record {
 /// # Errors
 ///
 /// File system errors
-pub async fn check_cache() -> Result<(), Error> {
-    todo!()
+pub fn check_cache() -> Result<(), Error> {
+    if read_dir("~/.cache/woman/db").is_ok() {
+        return Ok(());
+    }
+    Err(Error)
 }
 
 /// Open the database, if none exist then it should create one at .cache/woman/db
@@ -127,6 +88,12 @@ pub async fn check_cache() -> Result<(), Error> {
 /// This function will return an error if the database fails to open or be created
 pub async fn setup_db() -> Result<Surreal<Db>, surrealError> {
     // TODO if there is no database then create one
+    let _ = check_cache().map_err(|_| {
+        surrealError::Api(surrealdb::error::Api::FileRead {
+            path: PathBuf::from("~/.cache/woman/db"),
+            error: std::io::Error::new(ErrorKind::NotFound, "Couldn't find db cache"),
+        })
+    });
     let db = Surreal::new::<RocksDb>("~/.cache/woman/db").await?;
     db.use_ns("app").use_db("data").await?;
     Ok(db)

@@ -88,12 +88,12 @@ pub fn check_cache() -> Result<(), Error> {
 /// This function will return an error if the database fails to open or be created
 pub async fn setup_db() -> Result<Surreal<Db>, surrealError> {
     // TODO if there is no database then create one
-    let _ = check_cache().map_err(|_| {
-        surrealError::Api(surrealdb::error::Api::FileRead {
-            path: PathBuf::from("~/.cache/woman/db"),
-            error: std::io::Error::new(ErrorKind::NotFound, "Couldn't find db cache"),
-        })
-    });
+    // let _ = check_cache().map_err(|_| {
+    //     surrealError::Api(surrealdb::error::Api::FileRead {
+    //         path: PathBuf::from("~/.cache/woman/db"),
+    //         error: std::io::Error::new(ErrorKind::NotFound, "Couldn't find db cache"),
+    //     })
+    // });
     let db = Surreal::new::<RocksDb>("~/.cache/woman/db").await?;
     db.use_ns("app").use_db("data").await?;
     Ok(db)

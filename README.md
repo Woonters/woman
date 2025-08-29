@@ -2,6 +2,12 @@
 
 Personalised man pages for my custom note taking
 
+<picture>
+ <source media="(prefers-color-scheme: dark)" srcset="images/logo_dark.png">
+ <source media="(prefers-color-scheme: light)" srcset="images/logo_light.png">
+ <image alt="Logo for woman, a patent image depicting a woman searching through an automated library as well as a terminal connected to a library database" src="images/logo_light.png">
+</picture>
+
 
 ## Why
 

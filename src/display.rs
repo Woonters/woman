@@ -12,26 +12,31 @@ use crate::data_base::Entry;
 pub fn display_setup(entry: &Entry) -> Result<()> {
     color_eyre::install()?;
     let mut terminal = ratatui::init();
-    let result = App::default().run(&mut terminal, entry);
+    let result = App::new(entry).run(&mut terminal);
     ratatui::restore();
     result
 }
 
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 struct App<'a> {
-    entry: Option<&'a Entry>,
+    entry: &'a Entry,
     scroll_state: u16,
     exit: bool,
 }
 
 impl<'a> App<'a> {
-    fn run(&'a mut self, terminal: &mut DefaultTerminal, entry: &'a Entry) -> Result<()> {
-        self.entry = Some(entry);
+    fn new(entry: &'a Entry) -> Self {
+        Self {
+            entry,
+            scroll_state: 0,
+            exit: false,
+        }
+    }
+    fn run(&'a mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         while !self.exit {
             terminal.draw(|f| self.draw(f))?;
             self.handle_events()?
         }
-        self.entry = None;
         Ok(())
     }
 
@@ -79,44 +84,34 @@ impl Widget for App<'_> {
 
         text.push_line(Line::styled("TLDR", heading_style));
         self.entry
-            .unwrap()
             .tldr
             .lines()
             .for_each(|l| text.push_line(Line::styled(l, body_style)));
         text.push_line("");
         text.push_line(Line::styled("Info", heading_style));
         self.entry
-            .unwrap()
             .info
             .lines()
             .for_each(|l| text.push_line(Line::styled(l, body_style)));
         text.push_line("");
         text.push_line(Line::styled("Common Uses", heading_style));
         self.entry
-            .unwrap()
             .common_uses
             .lines()
             .for_each(|l| text.push_line(Line::styled(l, body_style)));
         text.push_line("");
         text.push_line(Line::styled("Resources", heading_style));
         self.entry
-            .unwrap()
             .resources
             .lines()
             .for_each(|l| text.push_line(Line::styled(l, body_style)));
         text.push_line("");
         text.push_line(Line::styled(
-            self.entry
-                .unwrap()
-                .extra
-                .lines()
-                .take(1)
-                .collect::<String>(),
+            self.entry.extra.lines().take(1).collect::<String>(),
             heading_style,
         ));
         // extra prints out the # at the moment (BAD)
         self.entry
-            .unwrap()
             .extra
             .lines()
             .skip(1)
@@ -125,7 +120,7 @@ impl Widget for App<'_> {
         Paragraph::new(text)
             .block(
                 Block::bordered()
-                    .title(&self.entry.unwrap().name[..])
+                    .title(&self.entry.name[..])
                     .title_bottom("<j|↑> scroll up | <k|↓> scroll down | <q|Q> quit"),
             )
             .scroll((self.scroll_state, 1))

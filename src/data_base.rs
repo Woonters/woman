@@ -1,17 +1,12 @@
-use ratatui::style::Modifier;
-use ratatui::style::Style;
-use ratatui::text::Line;
-use ratatui::text::Text;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::fmt::Error;
 use std::fs::read_dir;
-use std::io::ErrorKind;
-use std::path::PathBuf;
 use surrealdb::Error as surrealError;
 use surrealdb::RecordId;
 use surrealdb::Surreal;
-use surrealdb::engine::local::{Db, RocksDb};
+use surrealdb::engine::any;
+use surrealdb::engine::any::Any;
 
 type DbStr = String;
 
@@ -86,7 +81,7 @@ pub fn check_cache() -> Result<(), Error> {
 /// # Errors
 ///
 /// This function will return an error if the database fails to open or be created
-pub async fn setup_db() -> Result<Surreal<Db>, surrealError> {
+pub async fn setup_db() -> Result<Surreal<Any>, surrealError> {
     // TODO if there is no database then create one
     // let _ = check_cache().map_err(|_| {
     //     surrealError::Api(surrealdb::error::Api::FileRead {
@@ -94,7 +89,7 @@ pub async fn setup_db() -> Result<Surreal<Db>, surrealError> {
     //         error: std::io::Error::new(ErrorKind::NotFound, "Couldn't find db cache"),
     //     })
     // });
-    let db = Surreal::new::<RocksDb>("~/.cache/woman/db").await?;
+    let db = any::connect("rocksdb:~/.cache/woman/db").await?;
     db.use_ns("app").use_db("data").await?;
     Ok(db)
 }

@@ -9,7 +9,7 @@ use atty::Stream;
 use clap::Parser;
 use surrealdb::Error as surrealError;
 use surrealdb::Surreal;
-use surrealdb::engine::local::Db;
+use surrealdb::engine::any::Any;
 
 use crate::data_base::Entry;
 use crate::data_base::Record;
@@ -44,7 +44,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), surrealError> {
+async fn main() -> Result<(), Box<surrealError>> {
     let args = Args::parse();
     // TODO: sanitise args.name
 
@@ -80,7 +80,7 @@ enum EditError {
     DBError,
 }
 
-async fn edit_entry(entry: Option<Entry>, appname: &str, db: Surreal<Db>) {
+async fn edit_entry(entry: Option<Entry>, appname: &str, db: Surreal<Any>) {
     match _edit_entry(entry, appname, db).await {
         Ok(_) => {
             remove_file("WOMANEDIT").expect("Failed to cleanup the WOMANEDIT file, have you deleted it yourself? or have permissions changed?");
@@ -106,7 +106,7 @@ async fn edit_entry(entry: Option<Entry>, appname: &str, db: Surreal<Db>) {
 async fn _edit_entry(
     entry: Option<Entry>,
     appname: &str,
-    db: Surreal<Db>,
+    db: Surreal<Any>,
 ) -> Result<(), EditError> {
     let mut f = File::create_new("WOMANEDIT").map_err(|_| EditError::FileCreationFailure)?;
     // it has probably errored out due to file permissions or available size?

@@ -10,7 +10,14 @@ color-eyre = "0.6.5"
 crossterm = "0.29.0"
 ratatui = "0.29.0"
 serde = {version = "1.0.219", features=['derive']}
-surrealdb = {version="2.3.7", features=['kv-rocksdb']}
-tokio = {version = "1.47.1", features=['macros','rt-multi-thread']}
+surrealdb = {version="2.3.7",default-features=false, features=['allocator','kv-mem']}
+tokio = {version = "1.47.1", features=['macros','rt-multi-thread', 'sync']}
 winnow = "0.7.13"
 
+
+[profile.release]
+lto = true
+strip = true
+opt-level = 3
+panic = 'abort'
+codegen-units = 1
